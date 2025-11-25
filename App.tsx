@@ -106,8 +106,9 @@ const App: React.FC = () => {
   // Define fetchUserStatus using useCallback to be stable
   const fetchUserStatus = useCallback(async () => {
     if (session?.user) {
-      // Check for stale jobs and refund if necessary before getting status
-      await jobService.cleanupStaleJobs(session.user.id);
+      // OPTIMIZATION: Run cleanup in background (fire and forget). 
+      // Do NOT await this, so the UI loads faster.
+      jobService.cleanupStaleJobs(session.user.id).catch(err => console.warn("Background cleanup warning:", err));
       
       // Pass email to ensure it's saved in DB
       const status = await getUserStatus(session.user.id, session.user.email);
